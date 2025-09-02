@@ -1,0 +1,82 @@
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
+from OpenGL.GL import *
+
+# Variáveis de controle da câmera (pan e viewport)
+left = -1
+right = 1
+top = 1
+bottom = -1
+panX = 0
+panY = 0
+
+def desenhaEixos():
+    glPushMatrix() #Salva a matriz MODELVIEW atual no topo da pilha.
+    glLoadIdentity() #Zera a MODELVIEW corrente para a identidade.
+
+    glColor3f(1, 1, 1) #rgb de 1 a 0 // 1,1,1 = branco
+    glLineWidth(1)
+
+    #- GL_POINTS: cada glVertex2f cria um ponto.
+    #GL_LINES: a cada par de vértices, forma-se um segmento.
+    #GL_TRIANGLES: a cada 3 vértices, forma-se um triângulo.
+    
+    glBegin(GL_LINES)
+    #0,0 é o ponto do meio
+    glVertex2f(left, 0) #canto esquerdo (-1), 0
+    glVertex2f(right, 0) # + canto direito (1), 0
+    #par de vertices formando uma linha
+    glVertex2f(0, bottom)
+    glVertex2f(0, top)
+    glEnd()
+
+    glPopMatrix()
+
+def desenhaPonto():
+    glPushMatrix() 
+    glLoadIdentity() 
+    glColor3f(1, 1, 1) 
+    glPointSize(15)
+    glBegin(GL_POINTS)
+    glVertex2f(0, 0) 
+    glEnd()
+
+    glPopMatrix()
+
+def Display():
+    desenhaEixos()
+    glFlush() #envia comandas para gpu
+
+
+# Inicializa variáveis e configurações de viewport
+def Inicializa():
+    global left, right, top, bottom, panX, panY
+
+    glMatrixMode(GL_PROJECTION)
+    left = -1
+    right = 1
+    top = 1
+    bottom = -1
+    gluOrtho2D(left + panX, right + panX, bottom + panY, top + panY)
+    glMatrixMode(GL_MODELVIEW)
+
+
+def main():
+    glutInit(sys.argv) #inicia biblioteca glut
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB)
+    glutInitWindowSize(800, 800)
+    glutCreateWindow(b"T1") #b = string -> bytes
+
+    
+
+    glutDisplayFunc(Display) #display callback OBRIGATORIO // como parametro, mandar funcao que desenha
+    
+    Inicializa()
+
+    try:
+        glutMainLoop()
+    except SystemExit:
+        pass
+
+if __name__ == '__main__':
+    main()
