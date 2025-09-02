@@ -21,76 +21,112 @@ class Entity():
         self.bodyLength = bodyLength
         self.c = c
 
-SQRT2_OVER_2 = math.sqrt(2) / 2 #ia q disse :(
 
-def calculaXPerna (x,legLength,side): #1 para perna direta, 0 para perna esquerda
+def calculaXCurvado (x,legLength,side): #1 para perna direta, 0 para perna esquerda
     if side==1:
-        #ang = math.radians(315) ou math.radians(225)
-        ang = SQRT2_OVER_2
-        return (x+(legLength*math.cos(ang)))/500 #dividid por 1000???
+        ang = math.radians(315)
+        return (legLength*math.cos(ang))/500 #dividid por 1000???
     elif side ==0:
-        ang = -SQRT2_OVER_2
-        return (x+(legLength*math.cos(ang)))/500 #dividid por 1000???
+        ang = math.radians(225)
+        return (legLength*math.cos(ang))/500 #dividid por 1000???
     else:
         raise ValueError("Wrong side value")
     
-def calculaYPerna (y,legLength,side): #1 para perna direta, 0 para perna esquerda
+def calculaYCurvado (y,legLength,side): #1 para perna direta, 0 para perna esquerda
     if side==1:
-        ang = -SQRT2_OVER_2
-        return (y+(legLength*math.sin(ang)))/500 #dividid por 1000???
+        ang = math.radians(315)
+        return (legLength*math.sin(ang))/500 #dividid por 1000???
     elif side ==0:
-        ang = -SQRT2_OVER_2
-        return (y+(legLength*math.sin(ang)))/500 #dividid por 1000???
+        ang = math.radians(225)
+        return (legLength*math.sin(ang))/500 #dividid por 1000???
     else:
         raise ValueError("Wrong side value")
     
 
-def desenhaEntity(ent):
+def desenhaPerna(x,y,legLength,signal,color):
     glPushMatrix()
     glLoadIdentity()
 
-    x = ent.x
-    y = ent.y
-    legLength = ent.legLength
-    armLength = ent.legLength
-    bodyLength = ent.bodyLength
-    glColor3f(1,1,1) #arrumar para receber ent.c
-    #antes tava glColor3f(ent.c), nao funcionou pq so tem um argumento (?)
+    glTranslatef(x / 500.0, y / 500.0, 0.0)
+    glColor3f(1,1,1) #MUDAR PARA COLOR
     glLineWidth (5)
-
-    # Normaliza as coordenadas (dividido por 1000)
-    glTranslatef(x / 1000.0, y / 1000.0, 0.0)
-
+    
     glBegin(GL_LINES)
     #perna esquerda
     glVertex2f(0,0)
-    xAux = calculaXPerna(x,legLength,0)
-    yAux = calculaYPerna(y,legLength,0)
+    xAux = calculaXCurvado(x,legLength,signal)
+    yAux = calculaYCurvado(y,legLength,signal)
     glVertex2f(xAux,yAux)
-    #perna direita
-    glVertex2f(0,0)
-    xAux = calculaXPerna(x,legLength,1)
-    yAux = calculaYPerna(y,legLength,1)
-    glVertex2f(xAux,yAux)
-    #torso
-    headY = (bodyLength/500)
-    glVertex2f(0,0)
-    glVertex2f(0,headY)
-    #bracos
-    #esquerda
-    glVertex2f(0,headY)
-    glVertex2f((armLength/500),headY)
-    #direita
-    glVertex2f(0,headY)
-    glVertex2f(((armLength/500)*-1),headY)
     glEnd()
+    glPopMatrix()
 
-    #cabeca
-    headSize = 20
-    glPointSize(headSize)
-    glBegin(GL_POINTS)
-    glVertex2f(0,headY+(headSize/1000))
+def desenhaTorso (x,y,headY,color):
+    glPushMatrix()
+    glLoadIdentity()
+
+    glTranslatef(x / 500.0, y / 500.0, 0.0)
+    glColor3f(1,1,1) #MUDAR PARA COLOR
+    glLineWidth (5)
+    
+    glBegin(GL_LINES)
+    glVertex2f(0,0)
+    glVertex2f(0,headY)
     glEnd()
+    glPopMatrix()
+
+def desenhaBracos (x,y,headY,armLength,signal,color):
+    glPushMatrix()
+    glLoadIdentity()
+
+    glTranslatef(x / 500.0, y / 500.0, 0.0)
+    glColor3f(1,1,1) #MUDAR PARA COLOR
+    glLineWidth (5)
+    
+    glBegin(GL_LINES)
+    glVertex2f(0,headY)
+    xAux = calculaXCurvado(x,armLength,signal)
+    yAux = calculaYCurvado(headY,armLength,signal)
+    glVertex2f(xAux,yAux)
+    glEnd()
+    glPopMatrix()
+
+def desenhaCabeca (x,y,headY,headSize,color):
+    glPushMatrix()
+    glLoadIdentity()
+
+    glTranslatef(x / 500.0, y / 500.0, 0.0)
+    glColor3f(1,1,1) #MUDAR PARA COLOR
+    glPointSize(headSize)
+
+    glBegin(GL_POINTS)
+    glVertex2f(0,headY)
+    glEnd()
+    glPopMatrix()
+
+
+def desenhaEntity(ent):
+    x = ent.x
+    y = ent.y
+    legLength = ent.legLength
+    armLength = ent.armLength
+    bodyLength = ent.bodyLength
+    color = ent.c
+    #perna esquerda
+    desenhaPerna(x,y,legLength,0,color)
+    #perna esquerda
+    desenhaPerna(x,y,legLength,1,color)
+    
+    headY = (bodyLength/500)
+
+    #torso
+    desenhaTorso(x,y,headY,color)
+    #braco esquerda
+    desenhaBracos(x,y,headY,armLength,0,color)
+    #braco direita
+    desenhaBracos(x,y,headY,armLength,1,color)
+
+    headSize = 20
+    desenhaCabeca(x,y,headY,headSize,color)
 
 
 def desenhaEixos():
@@ -128,7 +164,7 @@ def desenhaPonto():
 
 def Display():
     desenhaEixos()
-    desenhaEntity(Entity(40,80,50,30,80,(1,1,1)))
+    desenhaEntity(Entity(40,80,50,25,80,(1,1,1)))
     glFlush() #envia comandos para gpu
 
 

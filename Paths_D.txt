@@ -18,3 +18,6 @@
 colocar 1/2 frame por segundo ou algo assim??
 
 6 entidades + 1 pessoa q eu controlo
+
+colisao = usar quadtree ou algo do tipo?
+usar os vertices do stickman para saber se houve colisao ou nao
