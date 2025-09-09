@@ -55,7 +55,6 @@ def desenhaPerna(x,y,signal,color):
     legLength = 50
 
     glBegin(GL_LINES)
-    #perna esquerda
     glVertex2f(0,0)
     xAux = calculaXCurvado(x,legLength,signal)
     yAux = calculaYCurvado(y,legLength,signal)
@@ -111,9 +110,12 @@ def desenhaCabeca (x,y,headY,color):
 
 
 def desenhaEntity(ent):
+    if (ent.x is None or ent.y is None): return
+    
     x = ent.x
     y = ent.y
     color = ent.c
+
     #perna esquerda
     desenhaPerna(x,y,0,color)
     #perna esquerda
@@ -132,42 +134,8 @@ def desenhaEntity(ent):
 
     desenhaCabeca(x,y,headY,color)
 
-
-def desenhaEixos():
-    glPushMatrix() #Salva a matriz MODELVIEW atual no topo da pilha.
-    glLoadIdentity() #Zera a MODELVIEW corrente para a identidade.
-
-    glColor3f(1, 1, 1) #rgb de 1 a 0 // 1,1,1 = branco
-    glLineWidth(1)
-
-    #- GL_POINTS: cada glVertex2f cria um ponto.
-    #GL_LINES: a cada par de vértices, forma-se um segmento.
-    #GL_TRIANGLES: a cada 3 vértices, forma-se um triângulo.
-    
-    glBegin(GL_LINES)
-    #0,0 é o ponto do meio
-    glVertex2f(left, 0) #canto esquerdo (-1), 0
-    glVertex2f(right, 0) # + canto direito (1), 0
-    #par de vertices formando uma linha
-    glVertex2f(0, bottom)
-    glVertex2f(0, top)
-    glEnd()
-
-    glPopMatrix()
-
-def desenhaPonto():
-    glPushMatrix() 
-    glLoadIdentity() 
-    glColor3f(1, 1, 1) 
-    glPointSize(15)
-    glBegin(GL_POINTS)
-    glVertex2f(0, 0) 
-    glEnd()
-
-    glPopMatrix()
-
 def Reader():
-    with open ("Paths_D_Modified_2.txt") as f: ####
+    with open ("Paths_D_Modified.txt") as f: ####
         while True:
             entityData = f.readline()
             if entityData == "":
@@ -183,51 +151,55 @@ def parse_line(line: str): #feito em ia
     line = line.strip()
     size_str, rest = line.split(None, 1)  # split at first whitespace
     size = int(size_str)
-
     localFrames = []
+    localFrames.append((0,None,None))
     frame = 1
 
     for a, b, c in triple_re.findall(rest):
-        if int(c) == frame:
-            localFrames.append((int(c), int(a), int(b))) #frame, x, y 
-            frame +=1
-        else: 
+        while (int(c)!=frame):
             localFrames.append((frame,None,None))
             frame +=1
-        
-    while (frame!=maxFrame): 
+            continue
+        localFrames.append((int(c), int(a), int(b))) #frame, x, y 
+        frame +=1
+    
+    
+    while (frame<=MAXFRAME): 
         localFrames.append((frame,None,None))
         frame+=1
-
+    
     ent = Entity(localFrames[0][1],localFrames[0][2],(1,1,1),localFrames)
     entityList.append(ent)
 
 #frames globais
 currentFrame = 1
-maxFrame = 375
+MAXFRAME = 375
 
 def Display():
     glClear(GL_COLOR_BUFFER_BIT) #ia
     glMatrixMode(GL_MODELVIEW) #garantir modelview indentity por frame e evita acumular transformacoes antigas
     glLoadIdentity()
-    desenhaEixos()
     entityNum = 1
     for ent in entityList:
             if currentFrame < len(ent.frames) and len(ent.frames[currentFrame]) > 2: #garante que tem todos os frame e confirma se tem oq mostrar ou nao
                 ent.x = ent.frames[currentFrame][1]
                 ent.y = ent.frames[currentFrame][2]
                 print ("frame"+str(currentFrame)+" entity: "+str(entityNum)+" y: "+str(ent.y)+" x: "+str(ent.x))
-                desenhaEntity(ent) #otimizar pra so mudar posicao de entity especifica
+                desenhaEntity(ent)
             entityNum+=1
 
     # usando double-buffer, troque buffers: IA
     glutSwapBuffers() #ao inves de glFlush(), usando quando so um buffer
+    
+
+TIME_MS = 50 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms
 
 def Timer(value):
     global currentFrame
-    if (currentFrame < maxFrame):
+    if (currentFrame <= MAXFRAME):
         currentFrame+=1
-    glutTimerFunc(1000,Timer, 0) #1000ms, func Timer, 0 = nada
+    elif (currentFrame == 376): currentFrame = 1
+    glutTimerFunc(TIME_MS,Timer, 0) #1000ms, func Timer, 0 = nada
     glutPostRedisplay() #redesenho
 
 
@@ -236,17 +208,16 @@ def Inicializa():
     global left, right, top, bottom, panX, panY
 
     Reader()
-
     # cor de fundo
     glClearColor(0.0, 0.0, 0.0, 1.0)
 
     glMatrixMode(GL_PROJECTION)
     left = -1
-    right = 1
-    top = 1
+    right = 0.1
+    top = 0.1
     bottom = -1
-    panX = 0
-    panY = 0
+    panX = 1 
+    panY = 1 
     gluOrtho2D(left + panX, right + panX, bottom + panY, top + panY)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
@@ -256,12 +227,11 @@ def main():
     glutInit(sys.argv) #inicia biblioteca glut
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB) #double pois troca entre back buffer (desenho) e front buffer (oq realmente é mostrado)
     glutInitWindowSize(800, 800)
-    glutInitWindowPosition(100,100)
+    glutInitWindowPosition(500,100)
     glutCreateWindow(b"T1") #b = string -> bytes
     Inicializa()
     glutDisplayFunc(Display) #display callback OBRIGATORIO // como parametro, mandar funcao que desenha
-
-    glutTimerFunc(1000,Timer,0)
+    glutTimerFunc(TIME_MS,Timer,0)
 
     try:
         glutMainLoop()
