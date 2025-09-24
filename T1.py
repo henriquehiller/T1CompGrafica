@@ -194,11 +194,13 @@ def UpdateEntity(ent,xAux,yAux):
     if yAux > ent.maxY: ent.maxY = yAux
     if yAux < ent.minY: ent.minY = yAux
 
-def CollisionSystem (ent): #IMPORTANTE MUDAR
+def CollisionSystem (ent): #IMPORTANTE MUDAR/ ESTA COM TODOS OS VALORES EM INF AINDA
     print(ent.c) #
     nmro = 0 # 
     for entAux in entityList:
         print (nmro)
+        print ("Main Ent\n Min X:",ent.minX, " Max X: ",ent.maxX, " Min Y: ",ent.minY, " Max Y: ",ent.maxY) # 
+        print ("Seco Ent\n Min X:",entAux.minX, " Max X: ",entAux.maxX, " Min Y: ",entAux.minY, " Max Y: ",entAux.maxY) #
         if entAux == ent: 
             nmro +=1
             continue
@@ -214,7 +216,8 @@ def CollisionSystem (ent): #IMPORTANTE MUDAR
         if ent.minX < entAux.maxX and ent.maxY > ent.minY: 
             print ("COLISSION!") #
             ColorSwitcher(ent,entAux)
-        nmro +=1
+        nmro +=1 #
+        time.sleep(2) #
 
 def ColorSwitcher (ent1,ent2):
     colors = [(1,0,0),(0,1,0),(0,0,1),(1,1,0),(1,0,1),(0,1,1)]
