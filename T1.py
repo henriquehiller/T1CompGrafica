@@ -23,13 +23,13 @@ class Entity():
         self.frames = [] if frames is None else list(frames)
 
         #usado para bounding box
-        self.minX  = 0
-        self.minY  = 0 
-        self.maxX  = 0 
-        self.maxY  = 0 
+        self.minX  = float('-inf')
+        self.minY  = float('-inf') 
+        self.maxX  = float('inf')
+        self.maxY  = float('inf')
 
 
-def calculaXCurvado (x,legLength,side): #1 para perna direta, 0 para perna esquerda
+def calculaXCurvado (legLength,side): #1 para perna direta, 0 para perna esquerda
     if frameSignal == 0: #metade da animacao
         if side==1:
             ang = math.radians(277)
@@ -51,7 +51,7 @@ def calculaXCurvado (x,legLength,side): #1 para perna direta, 0 para perna esque
     else : raise ValueError("Wrong frameSignal value")
 
     
-def calculaYCurvado (y,legLength,side): #1 para perna direta, 0 para perna esquerda
+def calculaYCurvado (legLength,side): #1 para perna direta, 0 para perna esquerda
     if frameSignal == 0: #metade da animacao    
         if side==1:
             ang = math.radians(307)
@@ -72,37 +72,15 @@ def calculaYCurvado (y,legLength,side): #1 para perna direta, 0 para perna esque
             raise ValueError("Wrong side value")
     else: raise ValueError("Wrong frameSignal value")
 
-def CollisionSystem (xAux,yAux,ent):
-    if (ent.x+xAux) > ent.maxX: ent.maxX = ent.x+xAux
-    if (ent.x+xAux) < ent.minX: ent.minX = ent.x+xAux
-    if (ent.y+yAux) > ent.maxY: ent.maxY = ent.y+yAux
-    if (ent.y+yAux) < ent.minY: ent.minY = ent.y+yAux
-
-    for entAux in entityList:
-        #if ent.maxX > entAux.minX and ent.maxY > ent.minY: ColorSwitcher(ent,entAux)
-        #if ent.maxX > entAux.minX and ent.minY < ent.maxY: ColorSwitcher(ent,entAux)
-        #if ent.minX < entAux.maxX and ent.minY < ent.maxY: ColorSwitcher(ent,entAux)
-        #if ent.minX < entAux.maxX and ent.maxY > ent.minY: ColorSwitcher(ent,entAux)
-        if ent.minX <= entAux.maxX and ent.maxX >= entAux.minX: ColorSwitcher(ent,entAux)
-        if ent.minY <= entAux.maxY and ent.maxY >= entAux.minY: ColorSwitcher(ent,entAux)
-
-def ColorSwitcher (ent1,ent2): ##arrumar ainda
-    colors = [(1,0,0),(0,1,0),(0,0,1),(1,1,0),(1,0,1),(0,1,1)]
-    ent1.c = colors [random.randint(0,5)]
-    while ent1.c == ent2.c: ent1.c = colors [random.randint(0,5)]
-
-#mudar algoritmo para calcular antes de desenhar
 
 def desenhaPerna(x,y,xAux,yAux,ent):
     glPushMatrix()
     glLoadIdentity()
 
     glTranslatef(x / 1000.0, y / 1000.0, 0.0)
-    glLineWidth (5)
-    #CollisionSystem (xAux,yAux,ent)
-
     r, g, b = ent.c
     glColor3f(r,g,b)
+    glLineWidth (5)
 
     glBegin(GL_LINES)
     glVertex2f(0,0)
@@ -125,7 +103,7 @@ def desenhaTorso (x,y,headY,ent):
     glEnd()
     glPopMatrix()
 
-def desenhaBracos (x,y,headY,signal,ent):
+def desenhaBracos (x,y,headY,xAux,yAux,ent):
     glPushMatrix()
     glLoadIdentity()
 
@@ -134,14 +112,9 @@ def desenhaBracos (x,y,headY,signal,ent):
     glColor3f(r,g,b) 
     glLineWidth (5)
 
-    armLength = 50
-    
     glBegin(GL_LINES)
     glVertex2f(0,headY)
-    xAux = calculaXCurvado(x,armLength,signal)
-    yAux = calculaYCurvado(y,armLength,signal)
-    varA = 20/1000
-    glVertex2f(0+xAux,(headY-varA)+yAux)
+    glVertex2f(0+xAux,(headY)+yAux)
     glEnd()
     glPopMatrix()
 
@@ -159,61 +132,95 @@ def desenhaCabeca (x,y,headY,ent):
     glEnd()
     glPopMatrix()
 
-
 def desenhaEntity(ent):
     if (ent.x is None or ent.y is None): return
-    
     x = ent.x
     y = ent.y
 
-    CollisionSystem(ent)
+    positions = []
 
-    #perna esquerda
-    desenhaPerna(x,y,0,ent)
-    #perna esquerda
-    desenhaPerna(x,y,1,ent)
-    
-    bodyLength = 50
-
-    headY = (bodyLength/1000)
-
-    #torso
-    desenhaTorso(x,y,headY,ent)
-    #braco esquerda
-    desenhaBracos(x,y,headY,0,ent)
-    #braco direita
-    desenhaBracos(x,y,headY,1,ent)
-
-    desenhaCabeca(x,y,headY,ent)
-
-def desenhaEntity2(ent):
-    if (ent.x is None or ent.y is None): return
-    x = ent.x
-    y = ent.y
-
-    #CollisionSystem(ent)
-
-    #perna esquerda
     legLength = 50
 
-    xAux = calculaXCurvado(x,legLength,0) #ultimo é signal, mudar pra 1
-    yAux = calculaYCurvado(y,legLength,0)
-    desenhaPerna(x,y,0,ent)
+    #calculos posicoes novas
     #perna esquerda
-    desenhaPerna(x,y,xAux,yAux,ent)
+    xAux = calculaXCurvado(legLength,0)
+    yAux = calculaYCurvado(legLength,0)
+    positions.append((xAux,yAux))
+    UpdateEntity(ent,x+xAux,y+yAux)
+    #perna direita
+    xAux = calculaXCurvado(legLength,1)
+    yAux = calculaYCurvado(legLength,1)
+    positions.append((xAux,yAux))
+    UpdateEntity(ent,x+xAux,y+yAux)
     
     bodyLength = 50
-
     headY = (bodyLength/1000)
 
     #torso
-    desenhaTorso(x,y,headY,ent)
-    #braco esquerda
-    desenhaBracos(x,y,headY,0,ent)
-    #braco direita
-    desenhaBracos(x,y,headY,1,ent)
+    UpdateEntity(ent,x,headY)
 
-    desenhaCabeca(x,y,headY,ent)
+    armLength = 50
+
+    #braco esquerda
+    xAux = calculaXCurvado(armLength,0) 
+    yAux = calculaYCurvado(armLength,0)
+    positions.append((xAux,yAux))
+    UpdateEntity(ent,x+xAux,(headY)+yAux)
+    
+    #braco direita
+    xAux = calculaXCurvado(armLength,1)
+    yAux = calculaYCurvado(armLength,1)
+    positions.append((xAux,yAux))
+    UpdateEntity(ent,x+xAux,(headY)+yAux)
+
+    #cabeca
+    UpdateEntity(ent,x+10,(headY)+10) #devido a tamanho 20 do ponto da cabeca
+
+    
+    CollisionSystem(ent)
+
+    #desenhos
+    desenhaPerna(x,y,positions[0][0],positions[0][1],ent) #perna esquerda
+    desenhaPerna(x,y,positions[1][0],positions[1][1],ent) #perna direita
+    desenhaTorso(x,y,headY,ent) #torso
+    desenhaBracos(x,y,headY,positions[2][0],positions[2][1],ent) #braco esquerdo
+    desenhaBracos(x,y,headY,positions[3][0],positions[3][1],ent) #braco esquerdo
+    desenhaCabeca(x,y,headY,ent) #cabeca
+
+
+def UpdateEntity(ent,xAux,yAux):
+    if xAux > ent.maxX: ent.maxX = xAux
+    if xAux < ent.minX: ent.minX = xAux
+    if yAux > ent.maxY: ent.maxY = yAux
+    if yAux < ent.minY: ent.minY = yAux
+
+def CollisionSystem (ent): #IMPORTANTE MUDAR
+    print(ent.c) #
+    nmro = 0 # 
+    for entAux in entityList:
+        print (nmro)
+        if entAux == ent: 
+            nmro +=1
+            continue
+        if ent.maxX > entAux.minX and ent.maxY > ent.minY: 
+            print ("COLISSION!") #
+            ColorSwitcher(ent,entAux)
+        if ent.maxX > entAux.minX and ent.minY < ent.maxY: 
+            print ("COLISSION!") #
+            ColorSwitcher(ent,entAux)
+        if ent.minX < entAux.maxX and ent.minY < ent.maxY: 
+            print ("COLISSION!") #
+            ColorSwitcher(ent,entAux)
+        if ent.minX < entAux.maxX and ent.maxY > ent.minY: 
+            print ("COLISSION!") #
+            ColorSwitcher(ent,entAux)
+        nmro +=1
+
+def ColorSwitcher (ent1,ent2):
+    colors = [(1,0,0),(0,1,0),(0,0,1),(1,1,0),(1,0,1),(0,1,1)]
+    ent1.c = colors [random.randint(0,5)]
+    while ent1.c == ent2.c: ent1.c = colors [random.randint(0,5)]
+
 
 def Reader():
     with open ("Paths_D_Modified.txt") as f:
@@ -256,7 +263,7 @@ def parse_line(line: str): #feito em ia
 currentFrame = 1
 MAXFRAME = 375
 frameSignal = 0 #0 ou 1
-TIME_MS = 100 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms; 20fps, 50ms
+TIME_MS = 75 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms; 20fps, 50ms
 
 def Display():
     glClear(GL_COLOR_BUFFER_BIT) #ia
@@ -266,7 +273,7 @@ def Display():
             if currentFrame < len(ent.frames) and len(ent.frames[currentFrame]) > 2: #garante que tem todos os frame e confirma se tem oq mostrar ou nao
                 ent.x = ent.frames[currentFrame][1]
                 ent.y = ent.frames[currentFrame][2]
-                desenhaEntity(ent)
+                desenhaEntity(ent) ##
     # usando double-buffer, troque buffers
     glutSwapBuffers() #ao inves de glFlush(), usando quando so um buffer
 
