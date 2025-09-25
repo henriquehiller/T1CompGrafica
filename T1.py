@@ -1,7 +1,6 @@
 import math
 import random
 import re
-import time
 
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -289,7 +288,7 @@ currentFrame = 1
 MAXFRAME = 375
 frameSignal = 0 #0 ou 1
 TIME_MS = 75 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms; 20fps, 50ms
-#PlayerEntity = Entity(500,500,(1,1,1),None)
+PlayerEntity = Entity(500,500,(1,1,1),None)
 
 def Display():
     glClear(GL_COLOR_BUFFER_BIT) #ia
@@ -299,6 +298,10 @@ def Display():
             if currentFrame < len(ent.frames) and len(ent.frames[currentFrame]) > 2:
                 ent.x = ent.frames[currentFrame][1]
                 ent.y = ent.frames[currentFrame][2]
+                InicializeBox(ent)
+            elif ent == PlayerEntity:
+                ent.x = ent.x
+                ent.y = ent.y
                 InicializeBox(ent)
     for ent in entityList: 
             CollisionSystem(ent)
@@ -329,24 +332,24 @@ def Teclado(key: chr, x: int, y: int):
 
     # Teclas WASD para mover a câmera (pan)
     if key == b'a':
-        PlayerEntity.x -=1
+        PlayerEntity.x -=3
     if key == b'd':
-        PlayerEntity.x +=1
+        PlayerEntity.x +=3
     if key == b'w':
-        PlayerEntity.y +=1
+        PlayerEntity.y +=3
     if key == b's':
-        PlayerEntity.y -=1
+        PlayerEntity.y -=3
 
     # Solicita redesenho
     glutPostRedisplay()
 
 # Inicializa variáveis e configurações de viewport
 def Inicializa():
-    global left, right, top, bottom, panX, panY
+    global left, right, top, bottom, panX, panY, PlayerEntity
 
     Reader()
-    #PlayerEntity.active = True #liga o PlayerEntity
-    #entityList.append(PlayerEntity) #adiciona o PlayerEntity na lista
+    PlayerEntity.active = True #liga o PlayerEntity
+    entityList.append(PlayerEntity) #adiciona o PlayerEntity na lista
 
     # cor de fundo
     glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -371,7 +374,7 @@ def main():
     glutCreateWindow(b"T1") #b = string -> bytes
     Inicializa()
     glutDisplayFunc(Display) #display callback OBRIGATORIO // como parametro, mandar funcao que desenha
-    #glutKeyboardFunc(Teclado)
+    glutKeyboardFunc(Teclado)
     glutTimerFunc(TIME_MS,Timer,0)
 
     try:
@@ -392,6 +395,10 @@ if __name__ == '__main__':
 
 #Deve haver alguma interação com mouse ou teclado para mover pelo menos
 #uma entidade na aplicação (simulando um avatar);
+
+#Aprimoracoes
+#So animar se houver movimentacao
+#Diminuir mudanca de cor PlayerEntity 
 
 #Video
 
