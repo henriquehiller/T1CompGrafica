@@ -399,6 +399,7 @@ if __name__ == '__main__':
 #Aprimoracoes
 #So animar se houver movimentacao
 #Diminuir mudanca de cor PlayerEntity 
+#Esc nao fecha
 
 #Video
 
