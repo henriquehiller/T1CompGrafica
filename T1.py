@@ -248,6 +248,7 @@ def ColorSwitcher (ent1,ent2):
 
 def Reader():
     with open ("Paths_D.txt") as f:
+        f.readline()
         while True:
             entityData = f.readline()
             if entityData == "":
@@ -346,7 +347,7 @@ def Inicializa():
     Reader()
     #PlayerEntity.active = True #liga o PlayerEntity
     #entityList.append(PlayerEntity) #adiciona o PlayerEntity na lista
-    
+
     # cor de fundo
     glClearColor(0.0, 0.0, 0.0, 1.0)
 
