@@ -21,12 +21,14 @@ class Entity():
         self.y = y
         self.c = c
         self.frames = [] if frames is None else list(frames)
+        self.active = False
+        self.collided = False
 
         #usado para bounding box
-        self.minX  = float('-inf')
-        self.minY  = float('-inf') 
-        self.maxX  = float('inf')
-        self.maxY  = float('inf')
+        self.minX  = float('inf')
+        self.minY  = float('inf') 
+        self.maxX  = float('-inf')
+        self.maxY  = float('-inf')
 
 
 def calculaXCurvado (legLength,side): #1 para perna direta, 0 para perna esquerda
@@ -133,7 +135,10 @@ def desenhaCabeca (x,y,headY,ent):
     glPopMatrix()
 
 def desenhaEntity(ent):
-    if (ent.x is None or ent.y is None): return
+    if (ent.x is None or ent.y is None): 
+        ent.active = False
+        return
+    else: ent.active = True
     x = ent.x
     y = ent.y
 
@@ -147,17 +152,24 @@ def desenhaEntity(ent):
     yAux = calculaYCurvado(legLength,0)
     positions.append((xAux,yAux))
     UpdateEntity(ent,x+xAux,y+yAux)
+
+    print("perna esquerda: ",y+yAux) #
+
     #perna direita
     xAux = calculaXCurvado(legLength,1)
     yAux = calculaYCurvado(legLength,1)
     positions.append((xAux,yAux))
     UpdateEntity(ent,x+xAux,y+yAux)
+
+    print("perna direita: ",y+yAux)
     
     bodyLength = 50
     headY = (bodyLength/1000)
 
     #torso
-    UpdateEntity(ent,x,headY)
+    UpdateEntity(ent,x,y+headY)
+
+    print("torso: ",y+headY)
 
     armLength = 50
 
@@ -165,18 +177,25 @@ def desenhaEntity(ent):
     xAux = calculaXCurvado(armLength,0) 
     yAux = calculaYCurvado(armLength,0)
     positions.append((xAux,yAux))
-    UpdateEntity(ent,x+xAux,(headY)+yAux)
+    UpdateEntity(ent,x+xAux,y+(headY)+yAux)
+
+    print("headY: ",headY)
+    print("braco esquerda: ",y+(headY)+yAux)
     
     #braco direita
     xAux = calculaXCurvado(armLength,1)
     yAux = calculaYCurvado(armLength,1)
     positions.append((xAux,yAux))
-    UpdateEntity(ent,x+xAux,(headY)+yAux)
+    UpdateEntity(ent,x+xAux,y+(headY)+yAux)
 
-    #cabeca
-    UpdateEntity(ent,x+10,(headY)+10) #devido a tamanho 20 do ponto da cabeca
+    print("headY: ",headY)
+    print("braco direita: ",y+(headY)+yAux)
 
-    
+    #cabeca ARRUMAR PRA CADA LADO PQ ELE NAO TA PEGANDO AS EXTREMIDADES
+    UpdateEntity(ent,x+10,y+(headY)+10) #devido a tamanho 20 do ponto da cabeca
+
+    print("cabeca: ",y+(headY+10))
+
     CollisionSystem(ent)
 
     #desenhos
@@ -194,30 +213,29 @@ def UpdateEntity(ent,xAux,yAux):
     if yAux > ent.maxY: ent.maxY = yAux
     if yAux < ent.minY: ent.minY = yAux
 
-def CollisionSystem (ent): #IMPORTANTE MUDAR/ ESTA COM TODOS OS VALORES EM INF AINDA
+def CollisionSystem (ent):
     print(ent.c) #
     nmro = 0 # 
+    overlapX = False
+    overlapY = False
+    print ("Main Ent\n Min X:",ent.minX, " Max X: ",ent.maxX, " Min Y: ",ent.minY, " Max Y: ",ent.maxY) # 
     for entAux in entityList:
-        print (nmro)
-        print ("Main Ent\n Min X:",ent.minX, " Max X: ",ent.maxX, " Min Y: ",ent.minY, " Max Y: ",ent.maxY) # 
-        print ("Seco Ent\n Min X:",entAux.minX, " Max X: ",entAux.maxX, " Min Y: ",entAux.minY, " Max Y: ",entAux.maxY) #
         if entAux == ent: 
             nmro +=1
             continue
-        if ent.maxX > entAux.minX and ent.maxY > ent.minY: 
+        print (nmro," Ent\n Min X:",entAux.minX, " Max X: ",entAux.maxX, " Min Y: ",entAux.minY, " Max Y: ",entAux.maxY) # 
+        if entAux.active == False: 
+            nmro +=1
+            continue
+        if ent.minX <= entAux.maxX and ent.maxX >= entAux.minX: overlapX = True
+        if ent.minY <= entAux.maxY and ent.maxY >= entAux.minY: overlapY = True
+        if overlapX == True and overlapY == True: 
             print ("COLISSION!") #
+            print ("Collission Ent\n Min X:",entAux.minX, " Max X: ",entAux.maxX, " Min Y: ",entAux.minY, " Max Y: ",entAux.maxY) # 
             ColorSwitcher(ent,entAux)
-        if ent.maxX > entAux.minX and ent.minY < ent.maxY: 
-            print ("COLISSION!") #
-            ColorSwitcher(ent,entAux)
-        if ent.minX < entAux.maxX and ent.minY < ent.maxY: 
-            print ("COLISSION!") #
-            ColorSwitcher(ent,entAux)
-        if ent.minX < entAux.maxX and ent.maxY > ent.minY: 
-            print ("COLISSION!") #
-            ColorSwitcher(ent,entAux)
-        nmro +=1 #
-        time.sleep(2) #
+        overlapX = False
+        overlapY = False
+        nmro +=1
 
 def ColorSwitcher (ent1,ent2):
     colors = [(1,0,0),(0,1,0),(0,0,1),(1,1,0),(1,0,1),(0,1,1)]
@@ -266,19 +284,26 @@ def parse_line(line: str): #feito em ia
 currentFrame = 1
 MAXFRAME = 375
 frameSignal = 0 #0 ou 1
-TIME_MS = 75 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms; 20fps, 50ms
+TIME_MS = 75 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms; 20fps, 50ms; O NORMAL E 75!!!!!!!!!!!!!!!!!!!!!!!
 
 def Display():
     glClear(GL_COLOR_BUFFER_BIT) #ia
     glMatrixMode(GL_MODELVIEW) #garantir modelview indentity por frame e evita acumular transformacoes antigas
     glLoadIdentity() 
     for ent in entityList: 
+            InicializeBox(ent)
             if currentFrame < len(ent.frames) and len(ent.frames[currentFrame]) > 2: #garante que tem todos os frame e confirma se tem oq mostrar ou nao
                 ent.x = ent.frames[currentFrame][1]
                 ent.y = ent.frames[currentFrame][2]
-                desenhaEntity(ent) ##
+                desenhaEntity(ent)
     # usando double-buffer, troque buffers
     glutSwapBuffers() #ao inves de glFlush(), usando quando so um buffer
+
+def InicializeBox(ent):
+    ent.minX  = float('inf')
+    ent.minY  = float('inf') 
+    ent.maxX  = float('-inf')
+    ent.maxY  = float('-inf')
 
 def Timer(value):
     global currentFrame, frameSignal
