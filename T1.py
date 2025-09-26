@@ -195,8 +195,6 @@ def InicializeBox(ent):
     x = ent.x
     y = ent.y
 
-    positions = []
-
     legLength = 50
 
     #calculos posicoes novas
@@ -312,7 +310,6 @@ def Display():
 
 def Timer(value):
     global currentFrame, frameSignal
-    print ("frame: "+str(currentFrame)) ##
     if frameSignal == 0:
         frameSignal = 1
     else:
@@ -327,8 +324,12 @@ def Timer(value):
 def Teclado(key: chr, x: int, y: int):
     global PlayerEntity
 
-    if key == 27:  # Tecla ESC
-        exit(0)
+    if key in (b'\x1b',):
+        try:
+            glutLeaveMainLoop()
+        except Exception:
+            pass
+        sys.exit(0)
 
     # Teclas WASD para mover a câmera (pan)
     if key == b'a':
@@ -384,25 +385,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-#O QUE FALTA:
-#Algum processamento (com visualização) dos dados. Por exemplo: mudar as
-#cores dos personagens se eles chegarem muito perto um do outro, desenvolver
-#método para que eles evitem colisão, etc...
-#-Processamento de dados aparentemente funcionando, mudar pra gradiente q quando mais se aproxima
-#de alguem mais vermelho fica??? Veremos
-
-#Deve haver alguma interação com mouse ou teclado para mover pelo menos
-#uma entidade na aplicação (simulando um avatar);
-
-#Aprimoracoes
-#So animar se houver movimentacao
-#Diminuir mudanca de cor PlayerEntity 
-#Esc nao fecha
-
-#Video
-
-#Apresentar pipeline do trabalho quando for mostrar
-
-#Artigo
