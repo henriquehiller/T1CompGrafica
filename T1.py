@@ -255,11 +255,11 @@ def Reader():
 
 triple_re = re.compile(r"\((\d+),(\d+),(\d+)\)")
 
-entityList = [] #.append para adicionar
+entityList = []
 
-def parse_line(line: str): #feito em ia
+def parse_line(line: str):
     line = line.strip()
-    size_str, rest = line.split(None, 1)  # split at first whitespace
+    size_str, rest = line.split(None, 1)
     size = int(size_str)
     localFrames = []
     localFrames.append((0,None,None))
@@ -285,11 +285,11 @@ def parse_line(line: str): #feito em ia
 currentFrame = 1
 MAXFRAME = 375
 frameSignal = 0 #0 ou 1
-TIME_MS = 75 #1 fps, 1000 ms;10 fps, 100ms;100 fps, 10ms; 20fps, 50ms
+TIME_MS = 75 #15fps
 PlayerEntity = Entity(500,500,(1,1,1),None)
 
 def Display():
-    glClear(GL_COLOR_BUFFER_BIT) #ia
+    glClear(GL_COLOR_BUFFER_BIT) 
     glMatrixMode(GL_MODELVIEW) #garantir modelview indentity por frame e evita acumular transformacoes antigas
     glLoadIdentity() 
     for ent in entityList: 
